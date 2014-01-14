@@ -1,0 +1,82 @@
+package kolos;
+
+import javax.swing.*; 
+import java.awt.*; 
+import java.awt.event.*; 
+ 
+public class tyts extends JFrame { 
+  	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private JButton bGeneruj;
+  	private JPanel panel3, panel1, panel2; 
+	JTextField tOd, tDo;
+ 	JTextArea textArea;
+    
+  public tyts() { 
+    super("Przyklad "); 
+    setSize(850, 250); 
+    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); 
+    setLayout(new BorderLayout()); 
+    setLocationRelativeTo(null);
+    panel1 = new JPanel(); 
+    panel2 = new JPanel(); 
+    panel3 = new JPanel();
+      
+    tOd = new JTextField(15);
+    tDo = new JTextField(15);
+    
+    bGeneruj = new JButton("Generuj"); 
+    textArea = new JTextArea();
+
+    ObslugaZdarzenia generowanie = new ObslugaZdarzenia(); 
+ 	
+	// Dodawnie obslugi do przycisku
+    bGeneruj.addActionListener(generowanie); 
+         
+ 
+    panel1.add(bGeneruj); 
+    	
+	panel3.add(new JLabel("Od: "));
+	panel3.add(tOd);
+
+	panel3.add(new JLabel("Do:"));
+	panel3.add(tDo);
+
+    panel2.setBackground(Color.white); 
+    panel2.add(textArea)  ;   
+
+    add(panel1, BorderLayout.SOUTH);  
+    add(panel2, BorderLayout.CENTER); 
+    add(panel3, BorderLayout.NORTH); 	
+  } 
+   
+  private class ObslugaZdarzenia implements ActionListener { 
+	private int [] wylosowane;
+ 
+    public ObslugaZdarzenia(){ 
+
+    } 
+ 
+    public void actionPerformed(ActionEvent e) { 
+    	// Generowanie liczb, przechwytywanie obslugi zdarzen
+    	int read_od = Integer.parseInt(tOd.getText()); 
+		int read_do = Integer.parseInt(tDo.getText()); 
+   		wylosowane = new int[6];
+   		wylosowane[0] = read_od + (int)(Math.random()*(read_do-read_od+1));
+       	wylosowane[1] = read_od + (int)(Math.random()*(read_do-read_od+1));
+       	wylosowane[2] = read_od + (int)(Math.random()*(read_do-read_od+1));
+       	wylosowane[3] = read_od + (int)(Math.random()*(read_do-read_od+1));
+       	wylosowane[4] = read_od + (int)(Math.random()*(read_do-read_od+1));
+       	wylosowane[5] = read_od + (int)(Math.random()*(read_do-read_od+1));
+       	textArea.setText(" "+this.wylosowane[0]+" "+this.wylosowane[1]+" "+
+       	this.wylosowane[2]+" "+this.wylosowane[3]+" "+this.wylosowane[4]+" "+this.wylosowane[5]+" "); 
+    } 
+  } 
+   
+  public static void main(String[] args) {  
+    tyts okno = new tyts(); 
+    okno.setVisible(true);  
+  }  
+}
