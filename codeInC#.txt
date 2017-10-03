@@ -1,0 +1,756 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace MathHelperFinal
+{
+    public partial class Matti : Form
+    {
+        Panel currentPanel;
+        //Imports for rounded borders
+        [DllImport("Gdi32.dll", EntryPoint = "CreateRoundRectRgn")]
+        private static extern IntPtr CreateRoundRectRgn
+        (
+            int nLeftRect, // x-coordinate of upper-left corner
+            int nTopRect, // y-coordinate of upper-left corner
+            int nRightRect, // x-coordinate of lower-right corner
+            int nBottomRect, // y-coordinate of lower-right corner
+            int nWidthEllipse, // height of ellipse
+            int nHeightEllipse // width of ellipse
+        );
+
+        public Matti()
+        {
+            InitializeComponent();
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            formSettings();
+            componentSettings();
+            addTopics();
+
+        }
+        ////////////////////////////////////////////////Methods////////////////////////////////////////////////
+        private void setUpDesktop()
+        {
+            this.backPanel.Controls.Add(logo);
+            this.logo.Visible = true;
+
+            this.backPanel.Controls.Add(introPanel);
+            this.introPanel.Visible = true;
+
+            this.backPanel.Controls.Add(calcMover);
+            this.calcMover.Visible = true;
+            calcMover.Width = 40;
+            calcMover.Height = 37;
+
+            this.backPanel.Controls.Add(close);
+        }
+
+        public void messageBoxOkBtnClicked()
+        {
+            this.backPanel.Visible = true;
+        }
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        /////////////////////////////////////////Listeners////////////////////////////////////////////////////////
+
+        private void sharesAndDvidendsFind_Click(object sender, EventArgs e)
+        {
+            if(sharesAndDividedsCombo.Text.Equals("No. of shares"))
+            {
+                label15.Visible = true;
+                textBox4.Visible = true;
+
+                label14.Visible = true;
+                textBox3.Visible = true;
+
+                label11.Visible = false;
+                label13.Visible = false;
+
+                textBox1.Visible = false;
+                textBox2.Visible = false;
+
+                sharesSolve.Visible = true;
+
+                label15.Text = "Enter the amount invested";
+                label14.Text = "Enter market value of one share";                
+            }
+            else if(sharesAndDividedsCombo.Text.Equals("Annual Dividend"))
+            {
+                label15.Visible = true;
+                textBox4.Visible = true;           
+
+                label14.Visible = true;
+                textBox3.Visible = true;
+
+                label13.Visible = true;
+                textBox2.Visible = true;
+
+                label11.Visible = false;                
+                textBox2.Visible = false;
+
+                sharesSolve.Visible = true;
+
+                label15.Text = "Enter rate of dividend";
+                label14.Text = "Enter No. of sharer";
+                label13.Text = "Enter Face Value (Nominal Value)";
+            }
+            else if(sharesAndDividedsCombo.Text.Equals("Return percent"))
+            {
+                label15.Visible = true;
+                textBox4.Visible = true;
+
+                label14.Visible = true;
+                textBox3.Visible = true;
+
+                label11.Visible = false;
+                label13.Visible = false;
+
+                textBox1.Visible = false;
+                textBox2.Visible = false;
+
+                sharesSolve.Visible = true;
+
+                label15.Text = "Enter Annual Income";
+                label14.Text = "Enter Investment";
+            }
+        }
+
+        private void sharesSolve_Click(object sender, EventArgs e)
+        {
+            ////////////////////////////////////FindingNumOFShares/////////////////////////////////////////////
+            if (sharesAndDividedsCombo.Text.Equals("No. of shares"))
+            {
+                double investment = double.Parse(textBox4.Text);
+                double mv = double.Parse(textBox3.Text);
+
+                double num = Math.Round((investment / mv) * 100) / 100;
+                ansPanelShares.Visible = true;
+                ansLabelShares.Text = "\u2235Number of shares = \nAmount Invested \n------------------------------------------\nMV on one share\n\n" +
+                    "\u2234 Number of shares = " + investment + "\u00F7" + mv + "\n=> " + (investment / mv) + "\n" +
+                    "\u2234 Number of shares = " + num;
+                /////////////////////////////////////////////////////////////////////////////////////////////////
+            }
+            else if(sharesAndDividedsCombo.Text.Equals("Annual Dividend"))
+            {
+                ////////////////////////////////////FindingIncome//////////////////////////////////////////////////
+                double rate = double.Parse(textBox4.Text);
+                double no = double.Parse(textBox3.Text);
+                double nv = double.Parse(textBox2.Text);
+
+                double inco = Math.Round((rate*no*nv) * 100) / 100;
+                ansPanelShares.Visible = true;
+                ansLabelShares.Text = "\u2235Annual Dividend = \nrate\u00d7no\u00d7\nv\n" +
+                    "\u2234 Number of shares = " + rate + "\u00D7" + nv + "\u00D7" + nv + "\n=> " + (rate * no * nv) + "\n" +
+                    "\u2234 Number of shares = " + inco;
+                ///////////////////////////////////////////////////////////////////////////////////////////////////
+            }            
+        }
+
+        private void syllabus_MouseEnter(object sender, EventArgs e)
+        {
+            this.syllabus.Height += 5;
+            this.syllabus.Width += 5;
+        }
+
+        private void syllabus_MouseLeave(object sender, EventArgs e)
+        {
+            this.syllabus.Height -= 5;
+            this.syllabus.Width -= 5;
+        }
+
+        private void BackBtn_MouseEnter(object sender, EventArgs e)
+        {
+            this.BackBtn.Height += 7;
+            this.BackBtn.Width += 7;
+        }
+
+        private void BackBtn_MouseLeave(object sender, EventArgs e)
+        {
+            this.BackBtn.Height -= 7;
+            this.BackBtn.Width -= 7;
+        }
+        
+
+        private void resetBtnQuard_Click(object sender, EventArgs e)
+        {
+            this.textBoxX.Text = "";
+            this.xSquareTB.Text = "";
+            this.textBoxNum.Text = "";
+            this.ansQuardratic.Text = "";
+            this.ansPanelQuardratic.Visible = false;
+        }
+
+        private EventHandler handlerGetter(Button button)
+        {
+            return (object sender, EventArgs e) =>
+            {
+                toolBar.Controls.Remove(button);
+                if (button.Name.Contains("Banking"))
+                    bankingPanel.Visible = false;
+                else if (button.Name.Contains("Compound Interest"))
+                    ciPanel.Visible = false;
+                else if (button.Name.Contains("Quardratic Equations"))
+                    QuardraticPanel.Visible = false;
+            };
+        }
+
+        private void quardraticSolver_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                double a = Double.Parse(xSquareTB.Text);
+                double b = Double.Parse(textBoxX.Text);
+                double c = Double.Parse(textBoxNum.Text);
+
+                double temp = Math.Sqrt(b * b - 4 * a * c);
+                string nature = "";
+                if (temp > 0)
+                    nature = "real and unequal";
+                else if (temp == 0)
+                    nature = "real and equal";
+                else if (temp < 1)
+                    nature = "unequal and imaginary";
+
+                //Obtaining the roots and rounding them to 2nd decimal place
+                double root1 = Math.Round(((-b + temp) / (2 * a)) * 100) / 100.0;
+                double root2 = Math.Round(((-b - temp) / (2 * a)) * 100) / 100.0;
+
+                ansPanelQuardratic.Visible = true;
+                ansQuardratic.Text = "Here, \n" +
+                    "a = " + a + ",b = " + b + " and c = " + c + "\n" +
+                    "First, To find the discriminant of the equation,\n" +
+                    "b\u00B2 - 4ac\n" +
+                    "(" + b + ")\u00B2" + "- 4\u00D7" + a + "\u00D7" + c +
+                    "=> " + (b * b) + "- 4\u00D7" + a + "\u00D7" + c +
+                    "=> " + (b * b) + "-" + (4 * a * c) +
+                    "=> " + ((b * b) - (4 * a * c)) +
+                    "\n\u2235 discriminant = " + (temp * temp) + "\n" +
+                    "\u2234 Nature Of Roots is " + nature + "\n\n" +
+                    "Now, to find the roots of the equation, \n" +
+                    "(-b \u00B1 \u221Ab\u00B2 - 4\u00D7a\u00D7c)\u00F72\u00D7a\n" +
+                    "=>(" + -b + "\u00B1 \u221A" + b + "\u00B2 - 4\u00D7" + a + "\u00D7" + c + ")\u00F72\u00D7" + a + "\n" +
+                    "=>(" + -b + "+ \u221A" + (b * b - 4 * a * c) + ")\u00F72\u00D7" + a + "\n" +
+                    "=>(" + -b + "+" + temp + ")\u00F72\u00D7" + a + "\n" +
+                    "=>(" + (-b + temp) + ")\u00F72\u00D7" + a + "\n" +
+                    "=>" + ((-b + temp) / (2 * a)) + "\n" +
+                    "\u2235 root1 = " + root1 + "\n" +
+                    "Similarly,\n" +
+                    "=>(" + -b + "-" + temp + ")\u00F72\u00D7" + a + "\n" +
+                    "=>(" + (-b - temp) + ")\u00D7" + a + "\n" +
+                    "\u2235 root2 = " + root2;
+            }
+            catch (Exception ex)
+            {                
+                CustomMessageBox.Show("Error", "Please check your input");
+            }
+        }
+
+        private void Find_Click(object sender, EventArgs e)
+        {
+            if (whatToFindCombo.Text.Equals("Compound Interest"))
+            {
+                labelCI.Visible = false;
+                textBoxCi.Visible = false;
+
+                labelI.Visible = true;
+                labelR.Visible = true;
+            }
+        }
+
+        private void BackBtn_Click(object sender, EventArgs e)
+        {
+            currentPanel.SendToBack();
+        }
+
+        private void resetBtn_Click(object sender, EventArgs e)
+        {
+            textBoxMv.Visible = false;
+            labelMv.Visible = false;
+
+            textBoxMv.Text = "";
+            textBoxP2.Text = "";
+            textBoxR2.Text = "";
+            textBoxT2.Text = "";
+
+            ansPanel.Visible = false;
+            ansLabelBanking.Text = "";
+        }
+
+        private void solveBtnBanking_Click(object sender, EventArgs e)
+        {
+            this.BackgroundImage = global::MathHelperFinal.Properties.Resources.bankingWithGaussian;
+            try
+            {
+                if (whatToFindComboBanking.Text.Equals("Maturity Value"))
+                {
+                    double r = double.Parse(textBoxR2.Text);
+                    double p = double.Parse(textBoxP2.Text);
+                    double n = double.Parse(textBoxT2.Text);
+
+                    double interest = Math.Round((p * (n * (n + 1)) / 24 * r / 100) * 100) / 100.0;
+                    double maturityValue = Math.Round((p * n + interest) * 100) / 100.0;
+
+                    ansPanel.Visible = true;
+                    ansLabelBanking.Text = "\u2235 Principal p = " + p + "," +
+                        "\nTime n = " + n +
+                        "\nAnd Rate r = " + r + "\n" +
+                        "\n\u2234Qualifying sum=\n Pn(n+1)\u00D7r\n-------------------------------\n     \t   2400\n" +
+                        "=> " + p + "\u00D7" + n + "\u00D7" + (n + 1) + "\u00F724\u00D7" + r + "\u00F7100\n" +
+                        "=> " + (p * n * (n + 1)) + "\u00F7 24" + "\u00D7" + r + "\u00F7100\n" +
+                        "=> " + ((p * n * (n + 1))) / 24 + "\u00D7" + r + "\u00F7100\n" +
+                        "=> " + (((p * n * (n + 1))) / 24) * r + "\u00F7100\n" +
+                        "\u2234 Interest(I) = \u20B9" + interest + "\n\n" +
+                        "\u2235 MV = P\u00D7n + I\n" +
+                        "\u2234 MV = " + p + "\u00D7" + n + "+" + interest + "\n" +
+                        "\u2234 MV = " + (p * n) + "+" + interest + "\n" +
+                        "\u2234 MV = \u20B9" + maturityValue;
+                }//Find Maturity Value
+                else if (whatToFindComboBanking.Text.Equals("Principal"))
+                {
+                    double r = double.Parse(textBoxR2.Text);
+                    double mv = double.Parse(textBoxP2.Text);
+                    double n = double.Parse(textBoxT2.Text);
+
+                    double p = 100;
+
+                    double interest = p * (n * (n + 1)) / 24 * r / 100;
+                    double maturityValue = p * n + interest;
+
+                    double principal = Math.Round(((mv * p) / maturityValue) * 100) / 100.0;
+
+                    ansPanel.Visible = true;
+                    ansLabelBanking.Text = "\u2235 Maturity Value mv = " + mv + "," +
+                        "\nTime n = " + n +
+                        "\nAnd Rate r = " + r + "\n" +
+                        "Now, Let p = 100\n" +
+                        "\n\u2234Qualifying sum=\n Pn(n+1)\u00D7r\n-------------------------------\n     \t   2400\n" +
+                        "=> " + p + "\u00D7" + n + "\u00D7" + (n + 1) + "\u00F724\u00D7" + r + "\u00F7100\n" +
+                        "=> " + (p * n * (n + 1)) + "\u00F7 24" + "\u00D7" + r + "\u00F7100\n" +
+                        "=> " + ((p * n * (n + 1))) / 24 + "\u00D7" + r + "\u00F7100\n" +
+                        "=> " + (((p * n * (n + 1))) / 24) * r + "\u00F7100\n" +
+                        "\u2234 Interest(I), when p => 100 = \u20B9" + interest + "\n\n" +
+                        "\u2235 MV = P\u00D7n + I\n" +
+                        "\u2234 MV = " + p + "\u00D7" + n + "+" + interest + "\n" +
+                        "\u2234 MV = " + (p * n) + "+" + interest + "\n" +
+                        "\u2234 MV when p => 100 = \u20B9" + maturityValue + "\n" +
+                        "Now, by using unitary method, \n" +
+                        "When p = 100, \n" +
+                        "MV = " + maturityValue +
+                        "\nAnd when MV = " + mv + ",\n" +
+                        "p = ? \n" +
+                        "\u2234 After cross multiplying, we get\n" +
+                        "=>p(new) = mv(old)\u00D7p(old)\u00F7mv(new)\n" +
+                        "\u2234 p = " + mv + "\u00D7" + p + "\u00F7" + maturityValue +
+                        "\u2234 p = " + (mv * p) + "\u00F7" + maturityValue + "\n" +
+                        "\u2234 p = \u20B9" + principal;
+                }//Find principal
+                else if (whatToFindComboBanking.Text.Equals("Rate"))
+                {
+                    double mv = double.Parse(textBoxP2.Text);
+                    double p = double.Parse(textBoxR2.Text);
+                    double n = double.Parse(textBoxT2.Text);
+
+                    double r = Math.Round(((mv - (p * n)) * 100 * 24) / (p * (n * (n + 1))) * 100) / 100.0;
+
+                    double interest = p * (n * (n + 1)) / 2400;
+                    double maturityValue = p * n + interest;
+
+                    ansPanel.Visible = true;
+                    ansLabelBanking.Text = "Given,\n" +
+                        "n = " + n + ",P = " + p + " and r = ?\n" +
+                        "\n\u2234Qualifying sum=\n Pn(n+1)\u00D7r\n-------------------------------\n     \t   2400\n" +
+                        "=> " + p + "\u00D7" + n + "\u00D7" + (n + 1) + "\u00F724\u00D7r\u00F7100\n" +
+                        "=> " + (p * n * (n + 1)) + "\u00F7 24" + "\u00D7r\u00F7100\n" +
+                        "=> " + ((p * n * (n + 1))) / 24 + "\u00D7r\u00F7100\n" +
+                        "=> " + (((p * n * (n + 1))) / 24) / 100 + "\u00D7r\n" +
+                        "\u2234 Interest(i) = " + interest + "r\n\n" +
+                        "\u2235 MV = P\u00D7n + I\n" +
+                        "\u2234 " + mv + " = " + p + "\u00D7" + n + "+" + interest + "r\n" +
+                        "\u2234" + mv + " = " + (p * n) + "+" + interest + "r\n" +
+                        "\u2234" + mv + "-" + (p * n) + " = " + interest + "r\n" +
+                        "\u2234" + (mv - (p * n)) + " = " + +interest + "r\n" +
+                        "\u2234" + (mv - (p * n)) + "\u00F7" + interest + " = r\n" +
+                        "\u2234" + r + " = r\n" +
+                        "\u2234 r = " + r + "%";
+                }//Find Rate
+                else if (whatToFindComboBanking.Text.Equals("Time"))
+                {
+                    /////////TODO//////////
+                }//Find Time
+            }
+            catch (Exception ex)
+            {                
+                CustomMessageBox.Show("Error", "Please Check Your Input");                
+            }
+        }
+
+        private void findForBanking_Click(object sender, EventArgs e)
+        {
+            if (whatToFindComboBanking.Text.Equals("Maturity Value"))
+            {
+                textBoxMv.Visible = false;
+                labelMv.Visible = false;
+
+                labelR2.Visible = true;
+                labelP2.Visible = true;
+                labelT2.Visible = true;
+
+                textBoxR2.Visible = true;
+                textBoxP2.Visible = true;
+                textBoxT2.Visible = true;
+
+                labelP2.Text = "Enter Principal";
+
+                solveBtnBanking.Visible = true;
+                resetBtn.Visible = true;
+            }
+            else if (whatToFindComboBanking.Text.Equals("Principal"))
+            {
+                textBoxMv.Visible = false;
+                labelMv.Visible = false;
+
+                labelR2.Visible = true;
+                labelP2.Visible = true;
+                labelT2.Visible = true;
+
+                textBoxR2.Visible = true;
+                textBoxP2.Visible = true;
+                textBoxT2.Visible = true;
+
+                labelP2.Text = "Enter Maturity Value";
+
+                solveBtnBanking.Visible = true;
+                resetBtn.Visible = true;
+            }
+            else if (whatToFindComboBanking.Text.Equals("Rate"))
+            {
+                textBoxMv.Visible = false;
+                labelMv.Visible = false;
+
+                labelR2.Visible = true;
+                labelP2.Visible = true;
+                labelT2.Visible = true;
+
+                textBoxR2.Visible = true;
+                textBoxP2.Visible = true;
+                textBoxT2.Visible = true;
+
+                labelP2.Text = "Enter Maturity Value";
+                labelR2.Text = "Enter Principal";
+
+                solveBtnBanking.Visible = true;
+                resetBtn.Visible = true;
+            }
+            else if (whatToFindComboBanking.Text.Equals("Time"))
+            {
+                textBoxMv.Visible = false;
+                labelMv.Visible = false;
+
+                labelR2.Visible = true;
+                labelP2.Visible = true;
+                labelT2.Visible = true;
+
+                textBoxR2.Visible = true;
+                textBoxP2.Visible = true;
+                textBoxT2.Visible = true;
+
+                labelP2.Text = "Enter Principal";
+                labelR2.Text = "Enter Rate";
+                labelT2.Text = "Enter MAturity Value";
+
+                solveBtnBanking.Visible = true;
+                resetBtn.Visible = true;
+            }
+        }
+
+        private void okBtn_Click(object sender, EventArgs e)
+        {
+            introPanel.Visible = false;
+
+            moveTooBlarUp.Start();
+
+            this.backPanel.Controls.Add(toolBar);
+            toolBar.Visible = true;
+        }
+
+        private void syllabus_Click(object sender, EventArgs e)
+        {
+            this.backPanel.Controls.Add(syllabusPanel);
+            syllabusPanel.BringToFront();
+            syllabusPanel.Visible = true;
+            currentPanel = syllabusPanel;
+        }
+
+        int numOfTabs = 5;
+        private void clickOnTopic(object sender, EventArgs e)
+        {
+            Label sendingLabel = (Label)sender;
+            string topic = sendingLabel.Text;
+            numOfTabs++;
+
+            Button taskBarButton = new Button();
+            taskBarButton.ForeColor = Color.White;
+            taskBarButton.BackColor = Color.Transparent;
+            taskBarButton.FlatStyle = FlatStyle.Flat;
+            taskBarButton.FlatAppearance.BorderSize = 0;
+            taskBarButton.Text = topic.Substring(1);
+            taskBarButton.Size = new Size(54, 60);
+            taskBarButton.Font = new Font("Copperplate Gothic Bold", 35);
+            taskBarButton.FlatAppearance.MouseDownBackColor = Color.Transparent;
+            taskBarButton.FlatAppearance.MouseOverBackColor = Color.Transparent;
+            taskBarButton.Location = new Point(160 + numOfTabs * 50, 6);
+
+            for (int i = 0; i < topics.Length; i++)
+            {
+                taskBarButton.Name = topics[int.Parse(sendingLabel.Name)].ToString();
+            }
+            ////////////////////////////////////////////TaskBarButtonFuncs/////////////////////////////////////////
+            taskBarButton.Click += (sender1, e1) =>
+             {
+                 this.BackBtn.Visible = true;
+                 if (taskBarButton.Name.Contains("Banking"))
+                 {
+                     bankingPanel.BringToFront();
+                     currentPanel = bankingPanel;
+                 }
+                 else if (taskBarButton.Name.Contains("Compound Interest"))
+                 {
+                     ciPanel.BringToFront();
+                     currentPanel = ciPanel;
+                 }
+                 else if (taskBarButton.Name.Contains("Quardratic Equations"))
+                 {
+                     QuardraticPanel.BringToFront();
+                     currentPanel = QuardraticPanel;
+                 }
+             };
+            Point clickPoint = new Point(0, 0);
+            bool mouseDown = false;
+
+            taskBarButton.MouseUp += (kgsjad, yasugj) =>
+            {
+                mouseDown = false;
+            };
+
+            taskBarButton.MouseDown += (kd, asiy) =>
+            {
+                mouseDown = true;
+                clickPoint = asiy.Location;
+            };
+
+            taskBarButton.MouseMove += (vdj, aks) =>
+            {
+                if (mouseDown)
+                {
+                    taskBarButton.Location = new Point(
+                       (taskBarButton.Location.X - clickPoint.X) + aks.X, taskBarButton.Location.Y);
+
+                    this.Update();
+                }
+            };
+
+            //////////////////////////////////MagnificationGesture///////////////////////////////////////////////
+            taskBarButton.MouseEnter += (sy, s) =>
+            {
+                taskBarButton.Font = new Font("Copperplate Gothic Bold", 40);
+            };
+            taskBarButton.MouseLeave += (khjad, ahkdsj) =>
+            {
+                taskBarButton.Font = new Font("Copperplate Gothic Bold", 35);
+            };
+            /////////////////////////////////////////////////////////////////////////////////////////////////////
+            //////////////////////////////////////////////////////////////////////////////////////////////////////
+
+            //For Closing
+            ContextMenu cm = new ContextMenu();
+            cm.MenuItems.Add("Close", handlerGetter(taskBarButton));
+            taskBarButton.ContextMenu = cm;
+
+
+            BackBtn.Visible = true;//To go back to the syllabus panel
+
+            this.toolBar.Controls.Add(taskBarButton);
+
+            if (topic.ToLower().Contains("compound interest"))
+            {
+                this.backPanel.Controls.Add(ciPanel);
+                ciPanel.Visible = true;
+                ciPanel.BringToFront();
+                currentPanel = ciPanel;
+            }
+            else if(topic.ToLower().Contains("trigonometrical identities"))
+            {
+                this.backPanel.Controls.Add(trigonometryPanel);
+                trigonometryPanel.Visible = true;
+                trigonometryPanel.BringToFront();
+                currentPanel = trigonometryPanel;
+            }
+            else if (topic.ToLower().Contains("banking"))
+            {
+                this.backPanel.Controls.Add(bankingPanel);
+                bankingPanel.Visible = true;
+                bankingPanel.BringToFront();
+                currentPanel = bankingPanel;
+            }
+            else if (topic.ToLower().Contains("quardratic equations"))
+            {
+                this.backPanel.Controls.Add(QuardraticPanel);
+                QuardraticPanel.Visible = true;
+                QuardraticPanel.BringToFront();
+                currentPanel = QuardraticPanel;
+            }
+            else if(topic.ToLower().Contains("shares and dividends"))
+            {
+                this.backPanel.Controls.Add(sharesAndDividendsPanel);
+                this.sharesAndDividendsPanel.Visible = true;
+                this.sharesAndDividendsPanel.BringToFront();
+                currentPanel = sharesAndDividendsPanel;
+            }
+        }
+        //////////////////////////////////////////////Methods//////////////////////////////////////////////////////////
+
+        private void componentSettings()
+        {
+            Loader.Start();
+
+            this.introPanel.Location = new Point(190, 12);
+            this.introPanel.Size = new Size(730, 530);
+
+            this.toolBar.Size = new Size(1112, 64);
+            this.toolBar.Location = new Point(0, 580);
+
+            this.syllabusPanel.Size = new Size(726, 473);
+            this.syllabusPanel.Location = new Point(215, 25);
+
+            this.ciPanel.Size = new Size(726, 473);
+            this.ciPanel.Location = new Point(215, 25);
+
+            this.bankingPanel.Size = new Size(726, 473);
+            this.bankingPanel.Location = new Point(215, 25);
+
+            this.QuardraticPanel.Location = new Point(215, 25);
+            this.QuardraticPanel.Size = new Size(726, 473);
+
+            this.sharesAndDividendsPanel.Location = new Point(215, 25);
+            this.sharesAndDividendsPanel.Size = new Size(726, 473);
+
+            this.trigonometryPanel.Location = new Point(215, 25);
+            this.trigonometryPanel.Size = new Size(726, 473);
+
+            this.xSquareLabel.Text = "x\u00B2";
+        }
+
+        private void formSettings()
+        {
+            this.FormBorderStyle = FormBorderStyle.None;//BorderLess form
+            //Region = System.Drawing.Region.FromHrgn(CreateRoundRectRgn(0, 0, Width, Height, 20, 20));//Rounded Custom Borders            
+        }
+
+        private void addTopics()
+        {
+            for (int i = 0; i < topics.Length; i++)
+            {
+                Label topicLabel = new Label();
+                topicLabel.Size = new Size(800, 35);
+                topicLabel.ForeColor = Color.White;
+                topicLabel.Font = new System.Drawing.Font("Copperplate Gothic Bold", 17, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+                topicLabel.Text = topics[i];
+                topicLabel.Location = new Point(50, 50 + i * 30);
+                syllabusPanel.Controls.Add(topicLabel);
+                topicLabel.Cursor = Cursors.Hand;
+
+                topicLabel.MouseEnter += (sender, e) =>
+                {
+                    topicLabel.Text = topicLabel.Text.Insert(0, "-") + "-";
+                    Update();
+                };
+                topicLabel.MouseLeave += (sender, e) =>
+                {
+                    topicLabel.Text = topicLabel.Text.Replace("-", "");
+                    Update();
+                };
+                topicLabel.Name = "" + i;
+                topicLabel.Click += clickOnTopic;
+            }
+        }
+
+        ///////////////////////////////////////////////Timers//////////////////////////////////////////////////////
+        private void Loader_Tick(object sender, EventArgs e)
+        {
+            this.backPanel.Controls.Clear();
+
+            setUpDesktop();
+            Loader.Stop();            
+        }
+
+        int toolBarY = 580;
+        private void moveToolarUp_Tick(object sender, EventArgs e)
+        {
+            this.toolBar.Location = new Point(0, toolBarY);
+            toolBarY -= 5;
+            if (toolBarY <= 518)
+                moveTooBlarUp.Enabled = false;
+        }
+
+        private void close_Click(object sender, EventArgs e)
+        {
+            this.Dispose();
+            this.Close();
+        }
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+        string[] topics = { "Compound Interest", "Banking", "Shares and Dividends", "Linera Inequations"
+        , "Quardratic Equations", "Factorization", "Matrices", "Distance And Section Formulae", "Trigonometrical Identities", 
+            "Equation Of a Straight Line", "Circle", "Mensuration", "Hieghts and Distances", "Graphs", "Mean, Media and Mode" };
+
+        bool mouseDown;
+        Point clickPoint;
+
+        private void calcMover_MouseDown(object sender, MouseEventArgs e)
+        {
+            mouseDown = true;
+            clickPoint = e.Location;
+        }
+
+        private void calcMover_MouseMove(object sender, MouseEventArgs e)
+        {
+            if(mouseDown)
+            {
+                int currX = this.calcMover.Location.X;
+                int currY = this.calcMover.Location.Y;
+
+                int xMov = (currX + e.X) - (currX + clickPoint.X);
+                int yMov = (currY + e.Y) - (currY + clickPoint.Y);
+
+                int x = currX + xMov;
+                int y = currY + yMov;
+
+                this.calcMover.Location = new Point(x, y);
+            }
+        }
+
+        private void calcMover_MouseUp(object sender, MouseEventArgs e)
+        {
+            mouseDown = false;
+        }
+
+        private void calcMover_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            this.calcPanel.Visible = true;
+            this.calcMover.Size = new Size(237, 249);
+
+            this.calcMover.BackgroundImage = null;
+            this.calcMover.BackColor = Color.FromArgb(100, 128, 128, 128);
+        }
+    }
+} 
